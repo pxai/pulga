@@ -9,6 +9,7 @@ ctx.font = "12px Arial";
 const rocks = generateRocks(10);
 const bug = { "x": canvas.width/2, "y": 25, gravity: 0, speed: { x: 0,  y: 0}, state: "fall", power: 0};
 paintBug();
+paintRocks();
 const audio = { 
     jump: new Audio('sound/jump.mp3'),
     bounce: new Audio('sound/bounce.mp3'), 
@@ -20,13 +21,20 @@ const audio = {
 document.addEventListener('keydown', function(event) {
     console.log(event.repeat, event);
     if (bug.state === "stop" || bug.state === "power") {
-        if (event.code === SPACE && event.repeat) {
+        if ((event.code === LEFT ||  event.code === RIGHT) && event.repeat) {
             if (bug.power < 1.4 ) bug.power += 0.1;
             console.log("space " + bug.power);
             ctx.fillText("POWER: " + Math.round(bug.power * 10), 10, 10);
             bug.state = "power";
             audio.power.play();
-        } else if(event.code === LEFT) {
+        } 
+    } 
+});
+
+document.addEventListener('keyup', function(event) {
+    console.log(event.repeat, event);
+    if (bug.state === "stop" || bug.state === "power") {
+        if(event.code === LEFT) {
             bug.speed.x = -SPEED - bug.power;
             bug.speed.y = -SPEED - bug.power;
             bug.power = 0;
@@ -41,9 +49,8 @@ document.addEventListener('keydown', function(event) {
             audio.jump.play();
             console.log('Right was pressed: ', bug.speed, bug);
         }
-    } 
+    }
 });
-
 function loop () {
     setInterval(updateCanvas, 1000/60);
 }
@@ -160,7 +167,6 @@ function paintLandscape(context) {
     context.fillRect(canvas.width - 10, 0, 10, canvas.height);
     context.fillRect(0, canvas.height - 10, canvas.width, 10);
     ctx.fillStyle = 'black';
-    paintRocks();
 }
 
 function isOut(y) {
@@ -193,7 +199,7 @@ function isThereWallDown(x, y) {
 
 function isThereWallUp(x, y) {
     const pixelBuffer = new Uint32Array(
-      ctx.getImageData(x, y - 3, 1, 1).data.buffer
+      ctx.getImageData(x, y - 6, 1, 1).data.buffer
     );
         
     return pixelBuffer.some(color => color !== 0);
