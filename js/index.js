@@ -7,6 +7,7 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 ctx.font = "12px Arial";
 const bug = { "x": canvas.width/2, "y": 0, gravity: 0, speed: { x: 0,  y: 0}, state: "fall", power: 0};
+ctx.fillStyle = 'black';
 ctx.fillText("*", bug.x, bug.y);
 
 
@@ -38,12 +39,13 @@ function loop () {
 function updateCanvas () {
     // console.log("Updating!!", bug);
     ctx.clearRect(0,0,canvas.width,canvas.height);
+    paintLandscape(ctx);
     moveBug();
 }
 
 function moveBug() {
     if (bug.state === "fall") {
-        if (bug.y < canvas.height) {
+        if (bug.y < canvas.height) {  // (noGround(bug.x, bug.y)) { //
             bug.x += bug.speed.x;
             bug.gravity += GRAVITY;
             bug.y += bug.speed.y + bug.gravity;
@@ -51,11 +53,12 @@ function moveBug() {
         } else {
             bug.speed = { x: 0, y: 0 };
             bug.gravity = 0;
-            bug.state = "stop";
+            bug.state = "stop!!!";
         }
     } else if (bug.state === "jump") {
-        if (bug.x >= canvas.width || bug.x <= 0) {
+        if (isThereWall(bug.x, bug.y)) { //(bug.x >= canvas.width || bug.x <= 0) {
             bug.speed = { x: -bug.speed.x, y: bug.speed.y };
+            bug.speed.x = -0.2;
             bug.x += bug.speed.x;
         } else if (bug.y  >= canvas.height + 4) {
             bug.gravity = 0;
@@ -66,16 +69,38 @@ function moveBug() {
             bug.x += bug.speed.x;
             bug.gravity += 0.02; 
             bug.y += (bug.speed.y + bug.power) + bug.gravity;
-            console.log("Bug: ", bug);
+            // console.log("Bug: ", bug);
         }
     } else if (bug.state === "stop") {
         // console.log("Stop!!");
     }
-
     ctx.font = "12px Arial";
     ctx.fillText("*", bug.x, bug.y);
     ctx.font = "6px Arial";
     ctx.fillText("bug", bug.x+4, bug.y-8);
 }
+
+function paintLandscape(context) {
+    ctx.fillStyle = 'green';
+    context.fillRect(0, 0, 10, canvas.height);
+    context.fillRect(canvas.width - 10, 0, 10, canvas.height);
+    // context.fillRect(0, canvas.height - 10, canvas.width, 10);
+    ctx.fillStyle = 'black';
+}
+
+function noGround(x, y) {
+    const pixelBuffer = new Uint32Array(
+      ctx.getImageData(x, y + 1, 1, 1).data.buffer
+    );
+    return pixelBuffer.every(color => color === 0);
+  }
+
+function isThereWall(x, y) {
+    const pixelBuffer = new Uint32Array(
+      ctx.getImageData(x + 1, y, 1, y).data.buffer
+    );
+        
+    return pixelBuffer.some(color => color !== 0);
+  }
 
 loop(canvas);
